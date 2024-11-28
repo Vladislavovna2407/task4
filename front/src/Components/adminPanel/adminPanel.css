@@ -1,0 +1,38 @@
+.w-300 {
+    max-width: 500px ;
+    height: 38px;
+    margin-top: 16px;
+    margin-right: 50px;
+ 
+}
+
+.flex {
+    display: flex;
+    justify-content: space-between;
+}
+
+.align {
+    text-align: left;
+}
+
+.ml-50 {
+    margin-left: 50px;
+}
+
+.mr-50 {
+    margin-right: 50px;
+}
+
+.mt-300 {
+    margin-top: 300px;
+}
+
+.position {  
+    margin: 150px auto !important;
+}
+
+.caption {
+text-align: center;
+caption-side: top;
+color: #dc3545;
+}
