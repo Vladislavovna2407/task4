@@ -19,10 +19,12 @@ export async function basicAuth(req, res, next) {
   const user = await findUser({ email, password });
   if (!user) {
     res.status(400).json({ message: "The user not found" })
+    return;
   }
 
   if (!user.is_active) {
     res.status(401).json({ message: "The user is blocked" })
+    return;
   }
 
   next();
