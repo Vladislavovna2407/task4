@@ -7,6 +7,7 @@ import { RemovalNotification } from "../removalNotification/removalNotification"
 import { useEffect } from "react";
 import { ErrorNotification } from "../errorNotification/errorNotification";
 import { useNavigate } from "react-router-dom";
+import { getAllUsers, updateUsers } from "../../Api/Api.js"
 
 export const AdminPanel = () => {
   const [data, setData] = useState([]);
@@ -15,150 +16,90 @@ export const AdminPanel = () => {
   const [isRemovalOpen, setRemovalOpen] = useState(false);
   const [isErrorOpen, setErrorOpen] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const [isAllChecked, setIsAllChecked] = useState(false);
+  const [all,setAll] = useState(false)
+
   const [filter, setFilter] = useState("");
-  const [list, setList] = useState(data);
-  //   const [checkedItems, setCheckedItems] = useState([]);
+ 
   const navigate = useNavigate();
 
   function logOut() {
+    localStorage.clear();
     navigate("/");
   }
 
-  //   function filterList(filter, list) {
-  //     if (!filter) {
-  //       return list;
-  //     }
-  //     return list.filter(({ state }) => {
-  //       state.toLowerCase().includes(filter.toLowerCase());
-  //     });
-  //   }
 
-  //   setList(filterList());
-
-  //   function handleFilter() {
-  //     setFilter(filter);
-  //     console.log(setFilter);
-  //   }
-
-  function handleAllCheckboxChange(event) {
-    setIsChecked(event.target.checked);
+  function handlerAll(){
+    setAll(!all);
   }
 
-  //   function handleAllCheckbox(event) {
-  //     setIsAllChecked(event.target.value);
-  //   }
-  //   function checkboxChange(event) {
-  //     const { value, checked } = event.target;
-  //     if (checked) {
-  //       setCheckedItems((prev) => [...prev, value]);
-  //     } else {
-  //       setCheckedItems((prev) => prev.filter((item) => item !== value));
-  //     }
-  //   }
+  function handlerCheck() {
+    setIsChecked(!isChecked)
+  }
 
-  //   function resetCheckbox() {
-  //     setIsChecked(false);
-  //   }
+  // function handleAllCheckboxChange(event) {
+  //   setIsChecked(event.target.checked);
+  // }
 
   function getSelectedUsers() {
     const ids = Array.from(
       document.querySelectorAll(".select-checkbox-row:checked")
+      //  document.querySelectorAll('input[type=checkbox]')
     ).map((x) => +x.id);
     return ids;
   }
 
-  function applyAction(action, callback) {
-    const request = {
-      action: action,
-      ids: getSelectedUsers(),
-    };
-
-    function handleErrorMessage() {
-      useEffect(() => {
-        const timeId = setTimeout(() => {
-          setErrorOpen(false);
-        }, 2000);
-
-        return () => {
-          clearTimeout(timeId);
-        };
-      }, [isErrorOpen]);
+  async function applyAction(action) {
+    try {
+      await updateUsers(action, getSelectedUsers());
+    } catch(error){
+      console.error(error);
     }
-
-    fetch("http://localhost:3001/users/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: localStorage.getItem("user"),
-      },
-      body: JSON.stringify(request),
-    })
-      .then((response) => response.json())
-      .then((data) => callback(data))
-      .catch((error) => {
-        setErrorOpen(true);
-        // handleErrorMessage();
-        // useEffect(() => {
-        //   const timeId = setTimeout(() => {
-        //     setErrorOpen(false);
-        //   }, 2000);
-
-        //   return () => {
-        //     clearTimeout(timeId);
-        //   };
-        // }, [isErrorOpen]);
-
-        console.error(error);
-      });
   }
 
-  function openBlockedNotification() {
-    if (isChecked) {
-      applyAction("block", (response) => {
-        if (response.isSuccessful) {
-          setIsChecked(false);
-          refreshUsersTable();
-          setBlockedOpen(true);
-          setUnblockedOpen(false);
-          setRemovalOpen(false);
-        } else {
-          console.log(json.error);
-        }
-      });
+  async function refreshUsersTable() {
+    try {
+      const users = await getAllUsers();
+      setData(users);
+    } catch(error){
+      console.error(error);
+    }
+  }
+
+  async function onBlockUsers() {
+    if (!isChecked) {
+      await applyAction('block');
+      setIsChecked(false);
+      await refreshUsersTable();
+      setBlockedOpen(true);
+      setUnblockedOpen(false);
+      setRemovalOpen(false);
+    }
+  }
+
+  async function onUnblockUsers() {
+    if (!isChecked) {
+      await applyAction('unblock');
+      await refreshUsersTable();
+      setUnblockedOpen(true);
+      setBlockedOpen(false);
+      setRemovalOpen(false);
+    }
+  }
+
+  async function onDeleteUsers() {
+    if (!isChecked) {
+      await applyAction('delete');
+      await refreshUsersTable();
+      setRemovalOpen(true);
+      setBlockedOpen(false);
+      setUnblockedOpen(false);
     }
   }
 
   useEffect(() => {
-    refreshUsersTable();
+    const refresh = async () => await refreshUsersTable();
+    refresh().catch(console.error);
   }, []);
-
-  function refreshUsersTable() {
-    fetch("http://localhost:3001/users", {
-      headers: {
-        Authorization: localStorage.getItem("user"),
-      },
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        setData(json);
-      })
-      .catch((error) => {
-        setErrorOpen(true);
-        // handleErrorMessage();
-        // useEffect(() => {
-        //   const timeId = setTimeout(() => {
-        //     setErrorOpen(false);
-        //   }, 2000);
-
-        //   return () => {
-        //     clearTimeout(timeId);
-        //   };
-        // }, [isErrorOpen]);
-
-        console.error(error);
-      });
-  }
 
   useEffect(() => {
     const timeId = setTimeout(() => {
@@ -169,21 +110,6 @@ export const AdminPanel = () => {
       clearTimeout(timeId);
     };
   }, [isUnblockedOpen]);
-
-  function openUblockedNotification() {
-    if (isChecked) {
-      applyAction("unblock", (response) => {
-        if (response.isSuccessful) {
-          refreshUsersTable();
-          setUnblockedOpen(true);
-          setBlockedOpen(false);
-          setRemovalOpen(false);
-        } else {
-          console.log(json.error);
-        }
-      });
-    }
-  }
 
   useEffect(() => {
     if (setBlockedOpen) {
@@ -197,31 +123,6 @@ export const AdminPanel = () => {
     }
   }, [isBlockedOpen]);
 
-  function openRemovalNotification() {
-    if (isChecked) {
-      const request = {
-        ids: getSelectedUsers(),
-      };
-      fetch("http://localhost:3001/users", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          refreshUsersTable();
-          setRemovalOpen(true);
-          setBlockedOpen(false);
-          setUnblockedOpen(false);
-        })
-        .catch((error) => {
-          setErrorOpen(true);
-          //   handleErrorMessage();
-          console.error(error);
-        });
-    }
-  }
-
   useEffect(() => {
     const timeId = setTimeout(() => {
       setRemovalOpen(false);
@@ -232,96 +133,78 @@ export const AdminPanel = () => {
     };
   }, [isRemovalOpen]);
 
-  const users = [
-    {
-      id: "1",
-      name: "Mark",
-      email: "@mdo",
-      lastSeen: "2021-03-20",
-      state: "unblocked",
-    },
-    {
-      id: "2",
-      name: "Ira",
-      email: "@fat",
-      lastSeen: "2022-10-20",
-      state: "unblocked",
-    },
-    {
-      id: "3",
-      name: "Larry",
-      email: "@twitter",
-      lastSeen: "2022-11-04",
-      state: "unblocked",
-    },
-    {
-      id: "4",
-      name: "Mark",
-      email: "@mdo",
-      lastSeen: "2022-03-24",
-      state: "unblocked",
-    },
-    {
-      id: "5",
-      name: "Ira",
-      email: "@fat",
-      lastSeen: "2024-10-20",
-      state: "unblocked",
-    },
-    {
-      id: "6",
-      name: "Larry",
-      email: "@twitter",
-      lastSeen: "2021-11-04",
-      state: "unblocked",
-    },
-    {
-      id: "7",
-      name: "Mark",
-      email: "@mdo",
-      lastSeen: "2023-03-14",
-      state: "unblocked",
-    },
-    {
-      id: "8",
-      name: "Ira",
-      email: "@fat",
-      lastSeen: "2024-10-26",
-      state: "unblocked",
-    },
-    {
-      id: "9",
-      name: "Larry",
-      email: "@twitter",
-      lastSeen: "2021-11-03",
-      state: "unblocked",
-    },
-    {
-      id: "10",
-      name: "Larry",
-      email: "@twitter",
-      lastSeen: "1998-11-03",
-      state: "unblocked",
-    },
-  ];
-
-  const sortedUsers = users.sort(
-    (a, b) => new Date(b.lastSeen) - new Date(a.lastSeen)
-  );
-
-  //   function formatLastSeen(lastSeen) {
-  //     return (
-  //       lastSeen
-  //         .split(" ")
-  //         .map((word) => word.slice(0, 10))
-  //         .join(" ") +
-  //       ", " +
-  //       lastSeen
-  //         .split(" ")
-  //         .map((word) => word.slice(11, 16))
-  //         .join(" ")
-  //     );
-  //   }
+  // const users = [
+  //   {
+  //     id: "1",
+  //     name: "Mark",
+  //     email: "@mdo",
+  //     lastSeen: "2021-03-20",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Ira",
+  //     email: "@fat",
+  //     lastSeen: "2022-10-20",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Larry",
+  //     email: "@twitter",
+  //     lastSeen: "2022-11-04",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "4",
+  //     name: "Mark",
+  //     email: "@mdo",
+  //     lastSeen: "2022-03-24",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "5",
+  //     name: "Ira",
+  //     email: "@fat",
+  //     lastSeen: "2024-10-20",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "6",
+  //     name: "Larry",
+  //     email: "@twitter",
+  //     lastSeen: "2021-11-04",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "7",
+  //     name: "Mark",
+  //     email: "@mdo",
+  //     lastSeen: "2023-03-14",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "8",
+  //     name: "Ira",
+  //     email: "@fat",
+  //     lastSeen: "2024-10-26",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "9",
+  //     name: "Larry",
+  //     email: "@twitter",
+  //     lastSeen: "2021-11-03",
+  //     state: "unblocked",
+  //   },
+  //   {
+  //     id: "10",
+  //     name: "Larry",
+  //     email: "@twitter",
+  //     lastSeen: "1998-11-03",
+  //     state: "unblocked",
+  //   },
+  // ];
 
   return (
     <div>
@@ -330,21 +213,21 @@ export const AdminPanel = () => {
           <button
             type="submit"
             className="btn btn-outline-primary mx-1 mt-3"
-            onClick={openBlockedNotification}
+            onClick={onBlockUsers}
           >
             <i className="bi bi-lock"></i>Block
           </button>
           <button
             type="submit"
             className="btn btn-outline-primary mx-1 mt-3"
-            onClick={openUblockedNotification}
+            onClick={onUnblockUsers}
           >
             <i className="bi bi-unlock"></i>
           </button>
           <button
             type="submit"
             className="btn btn-outline-danger mx-1 mt-3"
-            onClick={openRemovalNotification}
+            onClick={onDeleteUsers}
           >
             <i className="bi bi-trash"></i>
           </button>
@@ -385,8 +268,8 @@ export const AdminPanel = () => {
                     type="checkbox"
                     // name="checkRow"
                     className="select-checkbox select-checkbox-row"
-                    checked={isChecked}
-                    onChange={handleAllCheckboxChange}
+                    checked={all}
+                    onChange={handlerAll}
                     // checked={checkedItems.includes("item0")}
                   />
                 </span>
@@ -405,10 +288,10 @@ export const AdminPanel = () => {
                     <input
                       id={user.id}
                       type="checkbox"
-                      name="checkRow"
+                      // name="checkRow"
                       //   checked={checkedItems.includes("item1")}
-                      checked={isChecked}
-                      //   onChange={handleCheckboxChange}
+                      // checked={isChecked}
+                      // onChange={handlerCheck}
                       className="select-checkbox select-checkbox-row"
                     />
                   </label>

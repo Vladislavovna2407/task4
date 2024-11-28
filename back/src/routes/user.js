@@ -1,8 +1,8 @@
 import express from 'express'
 import { changeStatus, deleteUsers, getAllUsers } from '../models/user.js'
+import { body, validationResult, matchedData } from 'express-validator'
 import HttpError from '../utils/httpError.js';
 import asyncUtil from '../utils/asyncUtil.js';
-
 
 const router = express.Router();
 
@@ -20,39 +20,38 @@ router.get(
             }
         });
 
-        res.json(mappedUsers);
+        return res.json(mappedUsers);
     }));
 
-router.post('/', async function (req, res) {
-    const { action, ids } = req.body;
+router.post(
+    '/',
+    [
+        body('action').isIn(['block', 'unblock', 'delete']),
+        body('ids').isArray({ min: 1 })
+    ],
+    asyncUtil(async function (req, res) {
 
-    if (action === 'block' || action == 'unblock') {
-        const isActive = action == 'unblock';
-        if (await changeStatus(isActive, ids)) {
-            res.status(200).json({ isSuccessful: true });
-        } else {
-            res.status(500).json({
-                isSuccessful: false,
-                error: 'update is failed'
-            });
+        const result = validationResult(req)
+        if (result.isEmpty()) {
+            const { action, ids } = matchedData(req)
+
+            switch (action) {
+                case 'block':
+                    await changeStatus(false, ids)
+                    break;
+                case 'unblock':
+                    await changeStatus(true, ids)
+                    break;
+                case 'delete':
+                    await deleteUsers(ids)
+                    break;
+            }
+
+            return res.status(200).end()
         }
-        return;
-    }
 
-    res.end();
-})
 
-router.delete('/', async function (req, res) {
-    const { ids } = req.body;
-
-    if (await deleteUsers(ids)) {
-        res.status(200).json({ isSuccessful: true });
-    } else {
-        res.status(500).json({
-            isSuccessful: false,
-            error: 'update is failed'
-        });
-    }
-})
+        throw new HttpError(400, "The input is not valid", result.array())
+    }))
 
 export default router

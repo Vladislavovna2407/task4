@@ -7,11 +7,8 @@ export async function changeStatus(isActive, ids) {
     UPDATE public.app_user
     SET is_active=${isActive}
     WHERE app_user_id IN ${sql(ids)}`;
-
-    return true;
   } catch (error) {
-    console.log(error);
-    return false;
+    throw new HttpError(500, "Unknow database error.")
   }
 }
 
@@ -20,10 +17,8 @@ export async function deleteUsers(ids) {
     await sql`
     DELETE FROM public.app_user
     WHERE app_user_id IN ${sql(ids)}`;
-
-    return true;
   } catch (error) {
-    return false;
+    throw new HttpError(500, "Unknow database error.")
   }
 }
 
@@ -33,7 +28,6 @@ export async function createUser({ email, name, password }) {
       insert into app_user (email, name, password, is_active, last_changed)
       values (${email}, ${name}, ${password}, true, CURRENT_TIMESTAMP)`
   } catch (error) {
-    console.log(error);
     if (error.constraint_name === 'email_lower_idx') {
       throw new HttpError(400, "The user with the same name is already exist.");
     }

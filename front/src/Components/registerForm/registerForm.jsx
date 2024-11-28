@@ -35,7 +35,7 @@ export const RegisterForm = () => {
     setConfirmPassword(event.target.value);
   }
 
-  async function goToAdminPanel() {
+  async function signUpHandler() {
     const request = {
       email: email,
       name: name,
@@ -51,6 +51,8 @@ export const RegisterForm = () => {
     });
 
     if (response.ok) {
+      const encrypted = btoa(request.email + ":" + request.password);
+      localStorage.setItem("user", `Basic ${encrypted}`);
       navigate("/adminPanel");
     } else {
       const json = await response.json();
@@ -186,7 +188,7 @@ export const RegisterForm = () => {
               <button
                 type="button"
                 className="btn btn-primary mb-3 w-100"
-                onClick={goToAdminPanel}
+                onClick={signUpHandler}
               >
                 Register
               </button>
