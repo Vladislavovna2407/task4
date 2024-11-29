@@ -25,8 +25,8 @@ export async function deleteUsers(ids) {
 export async function createUser({ email, name, password }) {
   try {
     await sql`
-      insert into app_user (email, name, password, is_active, last_changed)
-      values (${email}, ${name}, ${password}, true, CURRENT_TIMESTAMP)`
+      INSERT INTO app_user (email, name, password, is_active, last_changed)
+      VALUES (${email}, ${name}, ${password}, true, CURRENT_TIMESTAMP)`
   } catch (error) {
     if (error.constraint_name === 'email_lower_idx') {
       throw new HttpError(400, "The user with the same name is already exist.");
@@ -55,6 +55,18 @@ export async function getAllUsers() {
     FROM public.app_user`
 
     return response;
+  }
+  catch (error) {
+    throw new HttpError(500, "Unknow database error.")
+  }
+}
+
+export async function updateLastSeen(id) {
+  try {
+    await sql`
+    UPDATE public.app_user
+    SET last_changed = CURRENT_TIMESTAMP
+    WHERE app_user_id = ${id}`
   }
   catch (error) {
     throw new HttpError(500, "Unknow database error.")

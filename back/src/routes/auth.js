@@ -1,5 +1,5 @@
 import express from 'express'
-import { createUser, findUser } from '../models/user.js'
+import { createUser, findUser, updateLastSeen } from '../models/user.js'
 import { body, validationResult, matchedData } from 'express-validator'
 import HttpError from '../utils/httpError.js';
 import asyncUtil from '../utils/asyncUtil.js';
@@ -40,6 +40,8 @@ router.post(
             if (!user.is_active) {
                 throw new HttpError(400, "The user is blocked")
             }
+
+            await updateLastSeen(user.app_user_id)
 
             return res.status(200).end();
         }
