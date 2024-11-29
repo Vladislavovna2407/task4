@@ -59,7 +59,6 @@ export const AuthorizationForm = () => {
           validationSchema={validationSchema}
         >
           <Form className="custom-form">
-            {/* <form className="custom-form"> */}
             <h2 className="row justify-content-center mb-4">Authorization</h2>
             <div className="col-auto">
               <Field
@@ -79,15 +78,6 @@ export const AuthorizationForm = () => {
               <label htmlFor="staticEmail2" className="visually-hidden">
                 Email
               </label>
-              {/* <input
-                type="email"
-                className="form-control size"
-                id="staticEmail2"
-                placeholder="E-mail"
-                value={email}
-                onChange={handleEmail}
-                name="email" */}
-              {/* /> */}
             </div>
             <div className="col-auto">
               <Field
@@ -107,17 +97,7 @@ export const AuthorizationForm = () => {
               <label htmlFor="inputPassword2" className="visually-hidden">
                 Password
               </label>
-              {/* <input
-                name="password"
-                type="password"
-                className="form-control size"
-                id="inputPassword2"
-                placeholder="Password"
-                value={password}
-                onChange={handlePassword}
-              /> */}
             </div>
-
             <div className="col-auto">
               <button
                 type="button"
@@ -135,7 +115,6 @@ export const AuthorizationForm = () => {
                 </a>
               </span>
             </div>
-            {/* </form> */}
           </Form>
         </Formik>
       </div>

@@ -7,11 +7,12 @@ import { API_URL } from '../../Api/constants.js'
 
 export const RegisterForm = () => {
   const validationSchema = yup.object().shape({
-    name: yup.string().required("Required"),
-    email: yup.string().required("Required").email("Invalid email addres"),
-    password: yup.string().required("Required"),
-    confirmPassword: yup.string().required("Please, confirm your password"),
-  });
+    name: yup.string().min(2, 'The name must contain at least 2 letters').required('Required'),
+    email: yup.string().email("Invalid email addres").required('Required'),
+    password: yup.string().min(2, 'The password must contain at least 3 letters').required('Required'),
+    confirmPassword: yup.string().oneOf([yup.ref('password'), null], 'Passwords must match').required('Required'),
+    
+  })
 
   const navigate = useNavigate();
 
@@ -72,9 +73,9 @@ export const RegisterForm = () => {
             confirmPassword: "",
           }}
           validationSchema={validationSchema}
+          
         >
           <Form className="custom-form">
-            {/* <form className="custom-form"> */}
             <h2 className="row justify-content-center mb-4">Register Form</h2>
             <div className="col-auto">
               <Field
@@ -94,15 +95,6 @@ export const RegisterForm = () => {
               <label htmlFor="staticName" className="visually-hidden">
                 Name
               </label>
-
-              {/* <input
-                type="text"
-                className="form-control size"
-                id="staticName"
-                placeholder="Name"
-                value={name}
-                onChange={handleName}
-              /> */}
             </div>
             <div className="col-auto">
               <label htmlFor="inputEmail" className="visually-hidden">
@@ -122,14 +114,6 @@ export const RegisterForm = () => {
                 component="div"
                 style={{ color: "red" }}
               />
-              {/* <input
-                type="email"
-                className="form-control size"
-                id="inputEmail"
-                placeholder="E-mail"
-                value={email}
-                onChange={handleEmail}
-              /> */}
             </div>
             <div className="col-auto">
               <label htmlFor="inputPassword" className="visually-hidden">
@@ -149,14 +133,6 @@ export const RegisterForm = () => {
                 component="div"
                 style={{ color: "red" }}
               />
-              {/* <input
-                type="password"
-                className="form-control size"
-                id="inputPassword"
-                placeholder="Password"
-                value={password}
-                onChange={handlePassword}
-              /> */}
             </div>
             <div className="col-auto">
               <label htmlFor="inputConfirmPassword" className="visually-hidden">
@@ -176,14 +152,6 @@ export const RegisterForm = () => {
                 component="div"
                 style={{ color: "red" }}
               />
-              {/* <input
-                type="password"
-                className="form-control size"
-                id="inputConfirmPassword"
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={handleConfirmPassword}
-              /> */}
             </div>
             <div className="col-auto">
               <button
@@ -195,7 +163,6 @@ export const RegisterForm = () => {
               </button>
             </div>
           </Form>
-          {/* </form> */}
         </Formik>
       </div>
     </div>
