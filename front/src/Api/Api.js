@@ -1,4 +1,5 @@
-const baseUrl = "http://localhost:3001";
+import { API_URL } from './constants.js'
+
 const authKeyName = "user";
 
 function GetDefaultHeaders() {
@@ -9,7 +10,7 @@ function GetDefaultHeaders() {
 }
 
 export async function getAllUsers() {
-    const response = await fetch(baseUrl + "/users/", {
+    const response = await fetch(API_URL + "/users/", {
         headers: GetDefaultHeaders()
     });
 
@@ -26,7 +27,7 @@ export async function updateUsers(action, ids) {
         ids: ids,
     };
 
-    const response = await fetch(baseUrl + "/users/", {
+    const response = await fetch(API_URL + "/users/", {
         method: "POST",
         headers: GetDefaultHeaders(),
         body: JSON.stringify(request),

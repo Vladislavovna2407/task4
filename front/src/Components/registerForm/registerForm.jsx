@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./registerForm.css";
 import * as yup from "yup";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import { API_URL } from '../../Api/constants.js'
 
 export const RegisterForm = () => {
   const validationSchema = yup.object().shape({
@@ -42,7 +43,7 @@ export const RegisterForm = () => {
       password: password,
     };
 
-    const response = await fetch("http://localhost:3001/register", {
+    const response = await fetch(API_URL + "/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

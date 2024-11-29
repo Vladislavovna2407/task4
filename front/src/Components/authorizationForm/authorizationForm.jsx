@@ -3,6 +3,7 @@ import "./authorizationForm.css";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import { API_URL } from '../../Api/constants.js'
 
 export const AuthorizationForm = () => {
   const validationSchema = yup.object().shape({
@@ -32,7 +33,7 @@ export const AuthorizationForm = () => {
       password: password,
     };
 
-    const response = await fetch("http://localhost:3001/login", {
+    const response = await fetch(API_URL + "/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
